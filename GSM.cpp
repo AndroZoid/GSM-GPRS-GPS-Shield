@@ -17,6 +17,11 @@ based on QuectelM10 chip.
 #include "GSM.h"
 #include "WideTextFinder.h"
 
+//teensy serial2
+#if defined(__MK20DX256__)
+#define _GSM_TXPIN_ 9
+#define _GSM_RXPIN_ 10
+#else
 //De-comment this two lines below if you have the
 //first version of GSM GPRS Shield
 //#define _GSM_TXPIN_ 4
@@ -26,6 +31,7 @@ based on QuectelM10 chip.
 //second version og GSM GPRS Shield
 #define _GSM_TXPIN_ 2
 #define _GSM_RXPIN_ 3
+#endif
 
 #ifdef UNO
 GSM::GSM():_cell(_GSM_TXPIN_,_GSM_RXPIN_),_tf(_cell, 10),_status(IDLE)
@@ -732,6 +738,18 @@ int GSM::isIP(const char* cadena)
      return 1;
 }
 
+void GSM::sleep(){
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+QSCLK=2"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+}
+
+void GSM::wakeup(){
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
+  SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+}
 
 
 
