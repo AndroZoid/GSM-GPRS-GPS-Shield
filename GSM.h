@@ -256,8 +256,9 @@ public:
      // returns whether complete initialization was made
      byte IsInitialized(void);
      //-----------------------
-     void sleep();
-     void wakeup();
+     char sleep();
+     char wakeup();
+     int GetBatteryStatus();
 
      // debug methods
 #ifdef DEBUG_LED_ENABLED

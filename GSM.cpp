@@ -738,17 +738,53 @@ int GSM::isIP(const char* cadena)
      return 1;
 }
 
-void GSM::sleep(){
+char GSM::sleep(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
   SetCommLineStatus(CLS_ATCMD);
-  SendATCmdWaitResp(F("AT+QSCLK=2"), 500, 50, str_ok, 5);
+  ret_val=SendATCmdWaitResp(F("AT+QSCLK=2"), 500, 50, str_ok, 5);
   SetCommLineStatus(CLS_FREE);
+  return (ret_val);
 }
 
-void GSM::wakeup(){
+char GSM::wakeup(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
   SetCommLineStatus(CLS_ATCMD);
   SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
   SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
   SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
+
+int GSM::GetBatteryStatus()
+{
+     int ret_val = -1;
+     char *p_char;
+     byte status;
+
+     if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+     SetCommLineStatus(CLS_ATCMD);
+     ret_val = 0; // still not present
+     SendATCmdWaitResp(F("AT+CBC"), 500, 50, str_ok, 5);
+      // something was received but what was received?
+      // ---------------------------------------------
+      if(IsStringReceived("+CBC:")) {
+           // there is some SMS with status => get its position
+           // response is: +CBC: 0,100,4304
+           // +CMGL: <index>,<stat>,<oa/da>,,[,<tooa/toda>,<length>]
+           // <CR><LF> <data> <CR><LF>OK<CR><LF>
+           p_char = strrchr((char *)comm_buf,',');
+           if (p_char != NULL) {
+                ret_val = atoi(p_char+1);
+           }
+      } else {
+           // other response like OK or ERROR
+           ret_val = 0;
+      }
+
+     SetCommLineStatus(CLS_FREE);
+     return (ret_val);
 }
 
 
