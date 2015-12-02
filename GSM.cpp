@@ -369,6 +369,11 @@ void GSM::InitParam(byte group)
           //SendATCmdWaitResp("AT#SRP=1", 500, 50, str_ok, 5);
           // select ringer sound level
           //SendATCmdWaitResp("AT+CRSL=2", 500, 50, str_ok, 5);
+          
+          // select phonebook memory storage
+          SendATCmdWaitResp(F("AT+CPBS=\"SM\""), 1000, 50, str_ok, 5);
+          SendATCmdWaitResp(F("AT+CIPSHUT"), 500, 50, "SHUT OK", 5);
+
           // we must release comm line because SetSpeakerVolume()
           // checks comm line if it is free
           SetCommLineStatus(CLS_FREE);
@@ -376,9 +381,6 @@ void GSM::InitParam(byte group)
           //SetSpeakerVolume(9);
           // init SMS storage
           InitSMSMemory();
-          // select phonebook memory storage
-          SendATCmdWaitResp(F("AT+CPBS=\"SM\""), 1000, 50, str_ok, 5);
-          SendATCmdWaitResp(F("AT+CIPSHUT"), 500, 50, "SHUT OK", 5);
           break;
      }
 }
