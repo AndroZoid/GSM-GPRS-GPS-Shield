@@ -257,7 +257,10 @@ public:
      byte IsInitialized(void);
      //-----------------------
      char sleep();
+     char hardsleep();
      char wakeup();
+     char shutdown();
+     char fastshutdown();
      int GetBatteryStatus();
 
      // debug methods

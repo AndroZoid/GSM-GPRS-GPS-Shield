@@ -328,8 +328,10 @@ void GSM::InitParam(byte group)
           SetCommLineStatus(CLS_ATCMD);
           // Reset to the factory settings
           SendATCmdWaitResp(F("AT&F"), 1000, 50, str_ok, 5);
+#ifdef DEBUG_ON
           // switch off echo
           SendATCmdWaitResp(F("ATE0"), 500, 50, str_ok, 5);
+#endif
           // setup fixed baud rate
           //SendATCmdWaitResp("AT+IPR=9600", 500, 50, str_ok, 5);
           // setup mode
@@ -755,6 +757,33 @@ char GSM::wakeup(){
   SetCommLineStatus(CLS_ATCMD);
   SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
   SendATCmdWaitResp(F("AT+QSCLK=0"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
+
+char GSM::hardsleep(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+CFUN=0"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
+
+char GSM::shutdown(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+QPOWD=1"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
+
+char GSM::fastshutdown(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+QPOWD=0"), 500, 50, str_ok, 5);
   SetCommLineStatus(CLS_FREE);
   return (ret_val);
 }
