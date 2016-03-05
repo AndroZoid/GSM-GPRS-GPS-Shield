@@ -788,23 +788,28 @@ char GSM::fastshutdown(){
   return (ret_val);
 }
 
+char GSM::disableCalls(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  SendATCmdWaitResp(F("AT+CLCK=\"AI\"=1,\"1009\""), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
+
+
 int GSM::GetBatteryStatus()
 {
      int ret_val = -1;
      char *p_char;
-     byte status;
-
+     
      if (CLS_FREE != GetCommLineStatus()) return (ret_val);
      SetCommLineStatus(CLS_ATCMD);
      ret_val = 0; // still not present
-     SendATCmdWaitResp(F("AT+CBC"), 500, 50, str_ok, 5);
+     SendATCmdWaitResp(F("AT+CBC"), 5000, 50, str_ok, 5);
       // something was received but what was received?
       // ---------------------------------------------
       if(IsStringReceived("+CBC:")) {
-           // there is some SMS with status => get its position
-           // response is: +CBC: 0,100,4304
-           // +CMGL: <index>,<stat>,<oa/da>,,[,<tooa/toda>,<length>]
-           // <CR><LF> <data> <CR><LF>OK<CR><LF>
            p_char = strrchr((char *)comm_buf,',');
            if (p_char != NULL) {
                 ret_val = atoi(p_char+1);
@@ -816,6 +821,42 @@ int GSM::GetBatteryStatus()
 
      SetCommLineStatus(CLS_FREE);
      return (ret_val);
+}
+
+int GSM::getUSSD(char *request, char *answer){
+  //AT+CUSD=1,"*11#"
+  int ret_val = -1;
+  char *p_char;
+  char *p_char1;
+  char query[60];
+  byte len;
+  int max_len=120;
+  //query=0;
+  if (CLS_FREE != GetCommLineStatus()) return ret_val;
+  SetCommLineStatus(CLS_ATCMD);
+  ret_val = 0; // still not present
+  strcpy(query, "AT+CUSD=1,\"");
+  strcpy(query+11, request);  
+  strcpy(query+strlen(request)+11,"\"");
+  SendATCmdWaitResp(F(query), 5000, 50, str_ok, 5); //"AT+CUSD=1,\"*11#\""
+  if(IsStringReceived("+CUSD:")) {
+    p_char = strchr((char *)(comm_buf),',');
+    p_char1 = p_char+2; // we are on the first message character
+    p_char = strchr((char *)(p_char1),'"');
+    if (p_char != NULL) {
+         *p_char = 0; // end of string
+         len = strlen(p_char1);
+         if(len < max_len){
+           strcpy(answer, (char *)(p_char1));
+         }else{
+           memcpy(answer,(char *)p_char1,(max_len-1));
+           answer[max_len]=0;
+         }
+    }
+    ret_val = 1;
+  }
+  SetCommLineStatus(CLS_FREE);
+  return ret_val;
 }
 
 
