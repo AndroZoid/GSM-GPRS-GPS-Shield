@@ -264,6 +264,9 @@ public:
      char disableCalls();
      int GetBatteryStatus();
      int getUSSD(char *request, char *answer);
+     char enablePIN(char *pin);
+     char disablePIN(char *pin);
+     char lowPower();
      // debug methods
 #ifdef DEBUG_LED_ENABLED
      void BlinkDebugLED (byte num_of_blink);

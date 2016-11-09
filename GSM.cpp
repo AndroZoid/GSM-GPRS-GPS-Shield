@@ -375,7 +375,12 @@ void GSM::InitParam(byte group)
           // select phonebook memory storage
           SendATCmdWaitResp(F("AT+CPBS=\"SM\""), 1000, 50, str_ok, 5);
           SendATCmdWaitResp(F("AT+CIPSHUT"), 500, 50, "SHUT OK", 5);
-
+          //RI will react only to incoming SMS
+          SendATCmdWaitResp(F("AT+QRIMODE=2"), 1000, 50, str_ok, 5);
+          //emergency shutdown at 3,4V baterry
+          SendATCmdWaitResp(F("AT+QVBATT=1,3400,1"), 1000, 50, str_ok, 5);
+          //lower power GPRS
+          SendATCmdWaitResp(F("AT+QGPCLASS=8"), 1000, 50, str_ok, 5);
           // we must release comm line because SetSpeakerVolume()
           // checks comm line if it is free
           SetCommLineStatus(CLS_FREE);
@@ -720,7 +725,7 @@ char GSM::InitSMSMemory(void)
      ret_val = 0; // not initialized yet
 
      // Disable messages about new SMS from the GSM module
-     SendATCmdWaitResp(F("AT+CNMI=2,0"), 1000, 50, str_ok, 2);
+     //SendATCmdWaitResp(F("AT+CNMI=2,0"), 1000, 50, str_ok, 2);
 
      // send AT command to init memory for SMS in the SIM card
      // response:
@@ -792,7 +797,7 @@ char GSM::disableCalls(){
   char ret_val = -1;
   if (CLS_FREE != GetCommLineStatus()) return (ret_val);
   SetCommLineStatus(CLS_ATCMD);
-  SendATCmdWaitResp(F("AT+CLCK=\"AI\"=1,\"1009\""), 500, 50, str_ok, 5);
+  SendATCmdWaitResp(F("AT+QREFUSECS=0,1"), 500, 50, str_ok, 5);
   SetCommLineStatus(CLS_FREE);
   return (ret_val);
 }
@@ -824,7 +829,6 @@ int GSM::GetBatteryStatus()
 }
 
 int GSM::getUSSD(char *request, char *answer){
-  //AT+CUSD=1,"*11#"
   int ret_val = -1;
   char *p_char;
   char *p_char1;
@@ -859,7 +863,37 @@ int GSM::getUSSD(char *request, char *answer){
   return ret_val;
 }
 
+char GSM::enablePIN(char *pin){
+  char ret_val = -1;
+  char query[60];
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  strcpy(query, "AT+CLCK=\"SC\",1,\"");
+  strcpy(query+16, pin);  
+  strcpy(query+strlen(pin)+11,"\"");
+  SendATCmdWaitResp(F(query), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
 
+char GSM::disablePIN(char *pin){
+  char ret_val = -1;
+  char query[60];
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  strcpy(query, "AT+CLCK=\"SC\",0,\"");
+  strcpy(query+16, pin);  
+  strcpy(query+strlen(pin)+11,"\"");
+  SendATCmdWaitResp(F(query), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
 
-
-
+char GSM::lowPower(){
+  char ret_val = -1;
+  if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+  SetCommLineStatus(CLS_ATCMD);
+  ret_val=SendATCmdWaitResp(F("AT+QGPCLASS=8"), 500, 50, str_ok, 5);
+  SetCommLineStatus(CLS_FREE);
+  return (ret_val);
+}
