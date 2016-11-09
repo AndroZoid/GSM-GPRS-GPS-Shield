@@ -828,6 +828,32 @@ int GSM::GetBatteryStatus()
      return (ret_val);
 }
 
+int GSM::GetSignalStatus()
+{
+     int ret_val = -1;
+     char *p_char;
+     
+     if (CLS_FREE != GetCommLineStatus()) return (ret_val);
+     SetCommLineStatus(CLS_ATCMD);
+     ret_val = 0; // still not present
+     SendATCmdWaitResp(F("AT+CSQ"), 5000, 50, str_ok, 5);
+      // something was received but what was received?
+      // ---------------------------------------------
+      if(IsStringReceived("+CSQ:")) {
+           p_char = (char *)comm_buf;
+           
+           if (p_char != NULL) {
+                ret_val = atoi(p_char);
+           }
+      } else {
+           // other response like OK or ERROR
+           ret_val = 0;
+      }
+
+     SetCommLineStatus(CLS_FREE);
+     return (ret_val);
+}
+
 int GSM::getUSSD(char *request, char *answer){
   int ret_val = -1;
   char *p_char;
