@@ -821,18 +821,20 @@ int GSM::GetBatteryStatus()
            }
       } else {
            // other response like OK or ERROR
-           ret_val = 0;
+           ret_val = -1;
       }
 
      SetCommLineStatus(CLS_FREE);
      return (ret_val);
 }
 
-int GSM::GetSignalStatus()
+int GSM::GetSignalStatus(char *answer)
 {
      int ret_val = -1;
      char *p_char;
-     
+     char *p_char1;
+     int max_len=10;
+     byte len;
      if (CLS_FREE != GetCommLineStatus()) return (ret_val);
      SetCommLineStatus(CLS_ATCMD);
      ret_val = 0; // still not present
@@ -840,14 +842,21 @@ int GSM::GetSignalStatus()
       // something was received but what was received?
       // ---------------------------------------------
       if(IsStringReceived("+CSQ:")) {
-           p_char = (char *)comm_buf;
-           
-           if (p_char != NULL) {
-                ret_val = atoi(p_char);
-           }
+          p_char1 = (char *)comm_buf+8;
+          p_char = strchr((char *)(p_char1),',');
+          if (p_char != NULL) {
+               *p_char = 0; // end of string
+               len = strlen(p_char1);
+               if(len < max_len){
+                 strcpy(answer, (char *)(p_char1));
+               }else{
+                 memcpy(answer,(char *)p_char1,(max_len-1));
+                 answer[max_len]=0;
+               }
+          }
       } else {
            // other response like OK or ERROR
-           ret_val = 0;
+           ret_val = -1;
       }
 
      SetCommLineStatus(CLS_FREE);

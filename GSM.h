@@ -263,7 +263,7 @@ public:
      char fastshutdown();
      char disableCalls();
      int GetBatteryStatus();
-     int GetSignalStatus();
+     int GetSignalStatus(char *answer);
      int getUSSD(char *request, char *answer);
      char enablePIN(char *pin);
      char disablePIN(char *pin);
